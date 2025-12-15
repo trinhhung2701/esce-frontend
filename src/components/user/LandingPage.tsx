@@ -523,7 +523,7 @@ const LandingPage = () => {
                 <div className="hero-text">
                   <h1 className="hero-title">
                     Khám phá thiên nhiên tại
-                    <span className="hero-title-highlight"> Hội An</span>
+                    <span className="hero-title-highlight"> Đà Nẵng</span>
                   </h1>
                   <p className="hero-description">
                     Đặt dịch vụ theo nhóm thông minh, tiết kiệm chi phí và tạo những kỷ niệm đáng nhớ với công nghệ và dịch vụ hoàn hảo.
