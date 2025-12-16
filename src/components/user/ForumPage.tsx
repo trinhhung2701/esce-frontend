@@ -927,11 +927,18 @@ const ForumPage = () => {
       errors.PostContent = 'Nội dung bài viết phải có ít nhất 10 ký tự'
     }
     
-    // Validate images
+    // Validate images - support http URLs, file extensions, and base64 data URLs
     const invalidImages: string[] = []
     createPostData.Images.forEach((img, idx) => {
-      if (img.trim() && !img.trim().match(/\.(forum-jpg|jpeg|png|gif|webp)$/i) && !img.trim().startsWith('http')) {
-        invalidImages.push(`Ảnh ${idx + 1}`)
+      const trimmedImg = img.trim()
+      if (trimmedImg) {
+        const isValidUrl = trimmedImg.startsWith('http')
+        const isValidExtension = trimmedImg.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+        const isBase64DataUrl = trimmedImg.startsWith('data:image/')
+        
+        if (!isValidUrl && !isValidExtension && !isBase64DataUrl) {
+          invalidImages.push(`Ảnh ${idx + 1}`)
+        }
       }
     })
     if (invalidImages.length > 0) {
@@ -1121,7 +1128,7 @@ const ForumPage = () => {
     const newFiles: File[] = []
     const maxFiles = 10
     const maxSize = 5 * 1024 * 1024 // 5MB per file
-    const allowedTypes = ['image/jpeg', 'image/forum-jpg', 'image/png', 'image/gif', 'image/webp']
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 
     for (let i = 0; i < Math.min(files.length, maxFiles - imageFiles.length); i++) {
       const file = files[i]
@@ -2094,7 +2101,7 @@ const ForumPage = () => {
                     ref={fileInputRef}
                     type="file"
                     id="post-images"
-                    accept="image/jpeg,image/forum-jpg,image/png,image/gif,image/webp"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     multiple
                     className="forum-forum-file-input"
                     onChange={(e) => handleFileSelect(e.target.files)}
