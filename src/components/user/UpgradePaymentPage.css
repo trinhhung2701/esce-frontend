@@ -272,3 +272,96 @@
 
 
 
+
+/* QR Code Section */
+.upg-pay-payment-qr-card {
+  height: fit-content;
+}
+
+.upg-pay-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.upg-pay-qr-image {
+  width: 280px;
+  height: 280px;
+  border: 4px solid #059669;
+  border-radius: 12px;
+  padding: 8px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.upg-pay-qr-instruction {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.upg-pay-qr-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.upg-pay-checking-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #059669;
+}
+
+.upg-pay-success-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: #ecfdf5;
+  border: 2px solid #059669;
+  border-radius: 12px;
+  color: #047857;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 2rem 0;
+}
+
+.upg-pay-success-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #059669;
+}
+
+.upg-pay-retry-button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.upg-pay-check-button {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+/* Responsive for QR */
+@media (max-width: 968px) {
+  .upg-pay-qr-image {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upg-pay-qr-image {
+    width: 200px;
+    height: 200px;
+  }
+}

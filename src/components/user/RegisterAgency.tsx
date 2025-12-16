@@ -147,15 +147,15 @@ const RegisterAgency = () => {
         website: form.website || undefined
       }) as any
 
-      // Chuyển tới trang thành công
-      // Lưu ý: Agency cần thanh toán 1,000,000 VND - Admin sẽ xác nhận thanh toán
-      navigate('/upgrade-payment-success', {
+      // Chuyển tới trang thanh toán (hiển thị QR code)
+      // Agency cần thanh toán 1,000,000 VND trước khi Admin xét duyệt
+      const upgradeRequestId = response?.agencyId || response?.id || 'new'
+      navigate(`/upgrade/payment/${upgradeRequestId}`, {
         state: {
           type: 'agency',
           amount: 1000000,
           companyName: form.companyName,
-          certificateId: response?.agencyId || response?.id,
-          paymentMethod: 'bank_transfer' // Chuyển khoản ngân hàng
+          certificateId: response?.agencyId || response?.id
         }
       })
     } catch (error: any) {
