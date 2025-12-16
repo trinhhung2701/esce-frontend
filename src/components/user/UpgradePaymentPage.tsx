@@ -183,8 +183,17 @@ const UpgradePaymentPage = () => {
       }
     } catch (err: any) {
       console.error('Error creating upgrade payment:', err)
-      const errorMessage =
-        err.response?.data?.message || err.message || 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.'
+      let errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.'
+      
+      // Translate common error messages to Vietnamese
+      if (errorMessage.includes('already completed payment')) {
+        errorMessage = 'Bạn đã thanh toán thành công cho yêu cầu nâng cấp này. Vui lòng đợi Admin phê duyệt.'
+      } else if (errorMessage.includes('pending payment')) {
+        errorMessage = 'Bạn đã có yêu cầu thanh toán đang chờ xử lý. Vui lòng hoàn tất thanh toán hoặc đợi hết hạn.'
+      } else if (errorMessage.includes('User not found')) {
+        errorMessage = 'Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.'
+      }
+      
       setError(errorMessage)
     } finally {
       setProcessing(false)
@@ -332,6 +341,15 @@ const UpgradePaymentPage = () => {
                   <div className="upg-pay-error-alert">
                     <AlertCircleIcon className="upg-pay-error-icon" />
                     <span>{error}</span>
+                    <Button
+                      onClick={() => navigate('/')}
+                      variant="outline"
+                      size="sm"
+                      className="upg-pay-error-home-button"
+                      style={{ marginTop: '12px' }}
+                    >
+                      Về trang chủ
+                    </Button>
                   </div>
                 )}
 
