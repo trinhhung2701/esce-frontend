@@ -1136,7 +1136,25 @@ const ForumPage = () => {
     const maxSize = 5 * 1024 * 1024 // 5MB per file
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
 
-    for (let i = 0; i < Math.min(files.length, maxFiles - imageFiles.length); i++) {
+    // Check if already at max
+    if (imageFiles.length >= maxFiles) {
+      setFormErrors((prev) => ({
+        ...prev,
+        Images: `Bạn chỉ được chọn tối đa ${maxFiles} ảnh`
+      }))
+      return
+    }
+
+    // Check if selecting too many
+    const remainingSlots = maxFiles - imageFiles.length
+    if (files.length > remainingSlots) {
+      setFormErrors((prev) => ({
+        ...prev,
+        Images: `Bạn chỉ có thể thêm ${remainingSlots} ảnh nữa (tối đa ${maxFiles} ảnh)`
+      }))
+    }
+
+    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
       const file = files[i]
       
       // Validate file type
@@ -1161,6 +1179,12 @@ const ForumPage = () => {
     }
 
     if (newFiles.length === 0) return
+
+    // Clear image error if files are valid
+    setFormErrors((prev) => {
+      const { Images, ...rest } = prev
+      return rest
+    })
 
     // Add to imageFiles
     const updatedFiles = [...imageFiles, ...newFiles].slice(0, maxFiles)
