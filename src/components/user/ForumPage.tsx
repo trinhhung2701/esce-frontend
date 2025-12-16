@@ -928,23 +928,8 @@ const ForumPage = () => {
       errors.PostContent = 'Nội dung bài viết phải có ít nhất 10 ký tự'
     }
     
-    // Validate images - support http URLs, file extensions, and base64 data URLs
-    const invalidImages: string[] = []
-    createPostData.Images.forEach((img, idx) => {
-      const trimmedImg = img.trim()
-      if (trimmedImg) {
-        const isValidUrl = trimmedImg.startsWith('http')
-        const isValidExtension = trimmedImg.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-        const isBase64DataUrl = trimmedImg.startsWith('data:image/')
-        
-        if (!isValidUrl && !isValidExtension && !isBase64DataUrl) {
-          invalidImages.push(`Ảnh ${idx + 1}`)
-        }
-      }
-    })
-    if (invalidImages.length > 0) {
-      errors.Images = `URL ảnh không hợp lệ: ${invalidImages.join(', ')}`
-    }
+    // Image validation is handled in handleFileSelect
+    // No need to validate here since files are already validated when selected
     
     setFormErrors(errors)
     return Object.keys(errors).length === 0
