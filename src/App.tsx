@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react'
 import { NotificationProvider } from './contexts/NotificationContext'
 import LoadingSpinner from './components/common/LoadingSpinner'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import { useAuthValidation } from './hooks/useAuthValidation'
 
 // ==================== ADMIN COMPONENTS ====================
 // Lazy load MainLayout - Admin dashboard layout
@@ -74,6 +75,9 @@ const ReviewManager = lazy(() => import('~/components/user/ReviewManager'))
 
 
 function App() {
+  // Validate token khi app khởi động - nếu token không hợp lệ sẽ tự động clear
+  useAuthValidation()
+
   return (
     <NotificationProvider>
         <Suspense fallback={<LoadingSpinner />}>

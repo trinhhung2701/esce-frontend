@@ -28,6 +28,18 @@ const Header = React.memo(() => {
       if (token && userInfoStr) {
         try {
           const parsedUserInfo = JSON.parse(userInfoStr)
+          // Kiểm tra userInfo có hợp lệ không (phải có id hoặc Id)
+          const userId = parsedUserInfo?.id ?? parsedUserInfo?.Id ?? parsedUserInfo?.userId ?? parsedUserInfo?.UserId
+          if (!userId) {
+            console.warn('[Header] Invalid userInfo - missing userId, clearing auth data...')
+            localStorage.removeItem('token')
+            localStorage.removeItem('userInfo')
+            sessionStorage.removeItem('token')
+            sessionStorage.removeItem('userInfo')
+            setIsLoggedIn(false)
+            setUserInfo(null)
+            return
+          }
           setIsLoggedIn(true)
           // Chỉ update state nếu userInfo thay đổi
           setUserInfo(prev => {
@@ -40,6 +52,11 @@ const Header = React.memo(() => {
           })
         } catch (e) {
           console.error('Error parsing userInfo:', e)
+          // Clear invalid data
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+          sessionStorage.removeItem('token')
+          sessionStorage.removeItem('userInfo')
           setIsLoggedIn(false)
           setUserInfo(null)
         }
