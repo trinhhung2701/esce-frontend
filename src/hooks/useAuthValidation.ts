@@ -47,7 +47,7 @@ export const useAuthValidation = () => {
     try {
       // Gọi API để validate token bằng cách fetch user profile
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout (giảm từ 10s)
 
       const response = await fetch(`${API_BASE_URL}/user/${userId}`, {
         method: 'GET',
@@ -109,8 +109,10 @@ export const useAuthValidation = () => {
   }, [clearAuthData])
 
   useEffect(() => {
-    // Validate token khi app khởi động
-    validateToken()
+    // Validate token sau 1 giây để không block initial render
+    const timer = setTimeout(() => {
+      validateToken()
+    }, 1000)
 
     // Cũng validate khi tab được focus lại (user quay lại từ tab khác)
     const handleVisibilityChange = () => {
@@ -122,6 +124,7 @@ export const useAuthValidation = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
+      clearTimeout(timer)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [validateToken])
