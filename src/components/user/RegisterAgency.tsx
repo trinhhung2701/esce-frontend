@@ -148,12 +148,12 @@ const RegisterAgency = () => {
       }) as any
 
       // Chuyển tới trang thanh toán (hiển thị QR code)
-      // Agency cần thanh toán 1,000,000 VND trước khi Admin xét duyệt
+      // Agency cần thanh toán trước khi Admin xét duyệt
       const upgradeRequestId = response?.agencyId || response?.id || 'new'
       navigate(`/upgrade/payment/${upgradeRequestId}`, {
         state: {
           type: 'agency',
-          amount: 1000000,
+          amount: 5000, // Test amount - change to 1000000 for production
           companyName: form.companyName,
           certificateId: response?.agencyId || response?.id
         }
