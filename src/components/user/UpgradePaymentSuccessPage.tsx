@@ -254,20 +254,12 @@ const UpgradePaymentSuccessPage = () => {
             </div>
             <Card className="upg-success-success-card">
               <CardContent>
-                <h1 className="upg-success-pending-title">Đang xử lý thanh toán</h1>
+                <h1 className="upg-success-pending-title">Đơn của bạn đã được gửi thành công</h1>
                 <p className="upg-success-pending-message">
-                  Thanh toán của bạn đang được xử lý. Vui lòng đợi trong giây lát hoặc kiểm tra lại sau.
+                  Vui lòng đợi phản hồi của chúng tôi.
                 </p>
                 <div className="upg-success-action-buttons">
-                  <Button
-                    onClick={() => window.location.reload()}
-                    variant="default"
-                    size="lg"
-                    className="upg-success-view-status-button"
-                  >
-                    Kiểm tra lại
-                  </Button>
-                  <Button onClick={() => navigate('/')} variant="outline" size="lg" className="upg-success-home-button">
+                  <Button onClick={() => navigate('/')} variant="default" size="lg" className="upg-success-home-button">
                     Về trang chủ
                   </Button>
                 </div>
