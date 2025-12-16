@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axiosInstance from '~/utils/axiosInstance'
 import { API_ENDPOINTS } from '~/config/api'
+import { requestAgencyUpgrade } from '~/api/user/instances/RoleUpgradeApi'
 import Header from './Header'
 import Footer from './Footer'
 import Button from './ui/Button'
@@ -9,11 +10,27 @@ import { Card, CardContent } from './ui/Card'
 import LoadingSpinner from './LoadingSpinner'
 import {
   ArrowLeftIcon,
-  CreditCardIcon,
   AlertCircleIcon,
   CheckCircleIcon
 } from './icons/index'
 import './UpgradePaymentPage.css'
+
+interface AgencyFormData {
+  companyName: string
+  licenseFile: string
+  phone: string
+  email: string
+  website?: string
+}
+
+interface HostFormData {
+  businessName: string
+  businessLicenseFile: string
+  phone: string
+  email: string
+  address: string
+  description?: string
+}
 
 interface UpgradePaymentData {
   type: 'host' | 'agency'
@@ -21,6 +38,7 @@ interface UpgradePaymentData {
   businessName?: string
   companyName?: string
   certificateId?: number
+  formData?: AgencyFormData | HostFormData
 }
 
 interface PaymentResponse {
@@ -55,6 +73,8 @@ const UpgradePaymentPage = () => {
   const [paymentInfo, setPaymentInfo] = useState<PaymentResponse | null>(null)
   const [checkingPayment, setCheckingPayment] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [submittingUpgrade, setSubmittingUpgrade] = useState(false)
+  const upgradeSubmittedRef = useRef(false) // Prevent double submission
 
   useEffect(() => {
     // Lấy dữ liệu từ location.state (được truyền từ RegisterHost/RegisterAgency)
@@ -117,6 +137,20 @@ const UpgradePaymentPage = () => {
         return
       }
 
+      // Lưu thông tin form vào localStorage để sử dụng sau khi PayOS redirect về
+      if (data.formData) {
+        localStorage.setItem(
+          'pendingUpgradeRequest',
+          JSON.stringify({
+            type: data.type,
+            amount: data.amount,
+            companyName: data.companyName,
+            formData: data.formData
+          })
+        )
+        console.log('Saved pending upgrade request to localStorage')
+      }
+
       // Gọi API tạo upgrade payment cho Agency
       const description = `Nâng cấp Agency`.substring(0, 25)
 
@@ -157,6 +191,54 @@ const UpgradePaymentPage = () => {
     }
   }
 
+  // Gọi API tạo yêu cầu upgrade sau khi thanh toán thành công
+  const submitUpgradeRequest = useCallback(async () => {
+    if (!paymentData?.formData || upgradeSubmittedRef.current) return
+
+    upgradeSubmittedRef.current = true
+    setSubmittingUpgrade(true)
+
+    try {
+      if (paymentData.type === 'agency') {
+        const formData = paymentData.formData as AgencyFormData
+        await requestAgencyUpgrade({
+          companyName: formData.companyName,
+          licenseFile: formData.licenseFile,
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website
+        })
+        console.log('Agency upgrade request submitted successfully')
+      }
+      // TODO: Add host upgrade logic if needed
+
+      // Chuyển đến trang thành công
+      navigate('/upgrade-payment-success', {
+        state: {
+          type: paymentData?.type,
+          amount: paymentData?.amount,
+          paymentMethod: 'payos',
+          companyName: paymentData?.companyName
+        }
+      })
+    } catch (err: any) {
+      console.error('Error submitting upgrade request:', err)
+      // Vẫn chuyển đến trang thành công vì đã thanh toán
+      // Admin sẽ xử lý thủ công nếu có lỗi
+      navigate('/upgrade-payment-success', {
+        state: {
+          type: paymentData?.type,
+          amount: paymentData?.amount,
+          paymentMethod: 'payos',
+          companyName: paymentData?.companyName,
+          warning: 'Thanh toán thành công nhưng có lỗi khi gửi yêu cầu. Vui lòng liên hệ Admin.'
+        }
+      })
+    } finally {
+      setSubmittingUpgrade(false)
+    }
+  }, [paymentData, navigate])
+
   // Kiểm tra trạng thái thanh toán
   const checkPaymentStatus = useCallback(async () => {
     if (!paymentInfo) return
@@ -172,24 +254,15 @@ const UpgradePaymentPage = () => {
 
       if (status === 'PAID' || status === 'paid' || status === 'completed' || status === 'success') {
         setPaymentSuccess(true)
-        // Chuyển đến trang thành công
-        setTimeout(() => {
-          navigate('/upgrade-payment-success', {
-            state: {
-              type: paymentData?.type,
-              amount: paymentData?.amount,
-              paymentMethod: 'payos',
-              certificateId: paymentData?.certificateId
-            }
-          })
-        }, 1500)
+        // Thanh toán thành công -> Gọi API tạo yêu cầu upgrade
+        await submitUpgradeRequest()
       }
     } catch (err) {
       console.error('Error checking payment status:', err)
     } finally {
       setCheckingPayment(false)
     }
-  }, [paymentInfo, paymentData, navigate])
+  }, [paymentInfo, submitUpgradeRequest])
 
   // Polling kiểm tra trạng thái thanh toán mỗi 5 giây
   useEffect(() => {
@@ -265,7 +338,11 @@ const UpgradePaymentPage = () => {
                 {paymentSuccess && (
                   <div className="upg-pay-success-alert">
                     <CheckCircleIcon className="upg-pay-success-icon" />
-                    <span>Thanh toán thành công! Đang chuyển hướng...</span>
+                    <span>
+                      {submittingUpgrade
+                        ? 'Thanh toán thành công! Đang gửi yêu cầu nâng cấp...'
+                        : 'Thanh toán thành công! Đang chuyển hướng...'}
+                    </span>
                   </div>
                 )}
 

@@ -4,14 +4,12 @@ import Header from './Header'
 import Footer from './Footer'
 import Button from './ui/Button'
 import { Card, CardContent } from './ui/Card'
-import { requestAgencyUpgrade } from '~/api/user/instances/RoleUpgradeApi'
-import { 
+import {
   ArrowLeftIcon,
   ArrowRightIcon,
-  UploadIcon, 
+  UploadIcon,
   FileTextIcon,
-  AlertCircleIcon,
-  CheckCircleIcon
+  AlertCircleIcon
 } from './icons/index'
 import './RegisterAgency.css'
 
@@ -125,7 +123,7 @@ const RegisterAgency = () => {
 
     try {
       let fileBase64 = ''
-      
+
       // Chỉ convert file nếu có upload
       if (form.licenseFile) {
         fileBase64 = await new Promise<string>((resolve, reject) => {
@@ -139,23 +137,21 @@ const RegisterAgency = () => {
         })
       }
 
-      const response = await requestAgencyUpgrade({
-        companyName: form.companyName,
-        licenseFile: fileBase64 || 'pending_upload',
-        phone: form.phone,
-        email: form.email,
-        website: form.website || undefined
-      }) as any
-
-      // Chuyển tới trang thanh toán (hiển thị QR code)
-      // Agency cần thanh toán trước khi Admin xét duyệt
-      const upgradeRequestId = response?.agencyId || response?.id || 'new'
-      navigate(`/upgrade/payment/${upgradeRequestId}`, {
+      // KHÔNG gọi API ở đây - chỉ chuyển đến trang thanh toán
+      // API sẽ được gọi SAU KHI thanh toán thành công
+      navigate(`/upgrade/payment/new`, {
         state: {
           type: 'agency',
           amount: 5000, // Test amount - change to 1000000 for production
           companyName: form.companyName,
-          certificateId: response?.agencyId || response?.id
+          // Truyền thông tin form để gọi API sau khi thanh toán
+          formData: {
+            companyName: form.companyName,
+            licenseFile: fileBase64 || 'pending_upload',
+            phone: form.phone,
+            email: form.email,
+            website: form.website || undefined
+          }
         }
       })
     } catch (error: any) {
