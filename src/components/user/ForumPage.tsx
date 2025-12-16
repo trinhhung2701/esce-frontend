@@ -21,6 +21,7 @@ import {
 import axiosInstance from '~/utils/axiosInstance'
 import { API_ENDPOINTS } from '~/config/api'
 import { getImageUrl } from '~/lib/utils'
+import { uploadImageToFirebase } from '~/services/firebaseStorage'
 import './ForumPage.css'
 
 interface UserInfo {
@@ -1018,10 +1019,22 @@ const ForumPage = () => {
     try {
       setSubmittingPost(true)
       setFormErrors({})
+      
+      // Upload new images to Firebase Storage, keep existing URLs
+      let finalImageUrls: string[] = []
+      if (imageFiles.length > 0) {
+        // Upload new files
+        const uploadPromises = imageFiles.map(file => uploadImageToFirebase(file, 'forum-posts'))
+        finalImageUrls = await Promise.all(uploadPromises)
+      } else {
+        // Keep existing image URLs (when editing without changing images)
+        finalImageUrls = createPostData.Images.filter(img => img.trim() && img.startsWith('http'))
+      }
+      
       const postData = {
         PostContent: createPostData.PostContent.trim(),
         ArticleTitle: createPostData.ArticleTitle.trim() || undefined,
-        Images: createPostData.Images.filter(img => img.trim()),
+        Images: finalImageUrls,
         PosterName: userInfo.Name || userInfo.name || 'Người dùng',
         Hashtags: [],
       }
@@ -1069,10 +1082,18 @@ const ForumPage = () => {
     try {
       setSubmittingPost(true)
       setFormErrors({})
+      
+      // Upload images to Firebase Storage first
+      let uploadedImageUrls: string[] = []
+      if (imageFiles.length > 0) {
+        const uploadPromises = imageFiles.map(file => uploadImageToFirebase(file, 'forum-posts'))
+        uploadedImageUrls = await Promise.all(uploadPromises)
+      }
+      
       const postData = {
         PostContent: createPostData.PostContent.trim(),
         ArticleTitle: createPostData.ArticleTitle.trim() || undefined,
-        Images: createPostData.Images.filter(img => img.trim()),
+        Images: uploadedImageUrls,
         PosterName: userInfo.Name || userInfo.name || 'Người dùng',
         Hashtags: [],
       }
@@ -1160,15 +1181,10 @@ const ForumPage = () => {
     const updatedFiles = [...imageFiles, ...newFiles].slice(0, maxFiles)
     setImageFiles(updatedFiles)
 
-    // Generate preview URLs
+    // Generate preview URLs for display only
     const previewPromises = updatedFiles.map(file => fileToBase64(file))
     const previewUrls = await Promise.all(previewPromises)
     setImagePreviewUrls(previewUrls)
-
-    // Convert to base64 data URLs for backend
-    const base64Promises = updatedFiles.map(file => fileToBase64(file))
-    const base64Urls = await Promise.all(base64Promises)
-    setCreatePostData({ ...createPostData, Images: base64Urls })
   }
 
   // Remove image
@@ -1178,13 +1194,11 @@ const ForumPage = () => {
 
     if (newFiles.length === 0) {
       setImagePreviewUrls([])
-      setCreatePostData({ ...createPostData, Images: [] })
     } else {
       // Regenerate previews
       const previewPromises = newFiles.map(file => fileToBase64(file))
       Promise.all(previewPromises).then(urls => {
         setImagePreviewUrls(urls)
-        setCreatePostData({ ...createPostData, Images: urls })
       })
     }
   }
